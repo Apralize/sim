@@ -15,12 +15,25 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 # ============================================
-# CONFIGURACIÓN SMTP DE MAILTRAP
+# CONFIGURACIÓN SMTP - CAMBIA PARA PRODUCCIÓN
 # ============================================
+# Para PRODUCCIÓN (emails reales a Gmail):
+# 1. Descomenta las líneas de Gmail
+# 2. Genera App Password: https://myaccount.google.com/apppasswords
+# 3. Reemplaza TU_APP_PASSWORD_AQUI con tu app password de Gmail
+
+# MAILTRAP (Testing - emails NO llegan a Gmail)
 SMTP_HOST = "sandbox.smtp.mailtrap.io"
 SMTP_PORT = 587
 SMTP_USERNAME = "7c549514d5e656"
 SMTP_PASSWORD = "7cf0c95869f155"
+
+# GMAIL (Producción - descomentar para emails reales)
+# SMTP_HOST = "smtp.gmail.com"
+# SMTP_PORT = 587
+# SMTP_USERNAME = "fernando.apralize.tests@gmail.com"
+# SMTP_PASSWORD = "TU_APP_PASSWORD_AQUI"  # Ver: https://myaccount.google.com/apppasswords
+
 FROM_EMAIL = "fernando.apralize.tests@gmail.com"
 
 def send_email(nombre, email, fecha, estado):
