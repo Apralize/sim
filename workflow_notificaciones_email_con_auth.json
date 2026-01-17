@@ -1,0 +1,234 @@
+{
+  "version": "1.0",
+  "exportedAt": "2026-01-17T03:44:27.049Z",
+  "state": {
+    "blocks": {
+      "72c635d6-45c2-4958-be91-fe75bfccff48": {
+        "id": "72c635d6-45c2-4958-be91-fe75bfccff48",
+        "type": "generic_webhook",
+        "name": "Webhook 1",
+        "position": {
+          "x": -2312,
+          "y": -667.5
+        },
+        "enabled": true,
+        "horizontalHandles": true,
+        "advancedMode": false,
+        "triggerMode": true,
+        "height": 0,
+        "subBlocks": {
+          "token": {
+            "id": "token",
+            "type": "short-input",
+            "value": "ef8db7d4158803d71489a07417d88889612fg58ty"
+          },
+          "inputFormat": {
+            "id": "inputFormat",
+            "type": "input-format",
+            "value": [
+              {
+                "id": "c61e1912-2a46-48ba-9662-a98f4178e887",
+                "name": "nombre",
+                "type": "string",
+                "value": "",
+                "collapsed": false
+              },
+              {
+                "id": "111075d4-647c-4eef-b816-349ff5433655",
+                "name": "email",
+                "type": "string",
+                "value": "",
+                "collapsed": false
+              },
+              {
+                "id": "c2947f80-0d91-4bad-abfe-9854eac6e2d0",
+                "name": "fecha",
+                "type": "string",
+                "value": "",
+                "collapsed": false
+              },
+              {
+                "id": "4c0ddb76-0fab-417f-80b5-218cb193cf51",
+                "name": "estado",
+                "type": "string",
+                "value": "",
+                "collapsed": false
+              }
+            ]
+          },
+          "requireAuth": {
+            "id": "requireAuth",
+            "type": "switch",
+            "value": true
+          },
+          "triggerSave": {
+            "id": "triggerSave",
+            "type": "trigger-save",
+            "value": null
+          },
+          "samplePayload": {
+            "id": "samplePayload",
+            "type": "code",
+            "value": "{}"
+          },
+          "secretHeaderName": {
+            "id": "secretHeaderName",
+            "type": "short-input",
+            "value": null
+          },
+          "webhookUrlDisplay": {
+            "id": "webhookUrlDisplay",
+            "type": "short-input",
+            "value": null
+          },
+          "triggerInstructions": {
+            "id": "triggerInstructions",
+            "type": "text",
+            "value": "<div class=\"mb-3\"><strong>1.</strong> Copy the webhook URL and use it in your external service or API.</div><div class=\"mb-3\"><strong>2.</strong> Configure your service to send webhooks to this URL.</div><div class=\"mb-3\"><strong>3.</strong> The webhook will receive any HTTP method (GET, POST, PUT, DELETE, etc.).</div><div class=\"mb-3\"><strong>4.</strong> All request data (headers, body, query parameters) will be available in your workflow.</div><div class=\"mb-3\"><strong>5.</strong> If authentication is enabled, include the token in requests using either the custom header or \"Authorization: Bearer TOKEN\".</div><div class=\"mb-3\"><strong>6.</strong> Common fields like \"event\", \"id\", and \"data\" will be automatically extracted from the payload when available.</div>"
+          }
+        },
+        "outputs": {},
+        "data": {}
+      },
+      "650ac0e2-d7ec-434f-96e2-14bcb7d1c250": {
+        "id": "650ac0e2-d7ec-434f-96e2-14bcb7d1c250",
+        "type": "smtp",
+        "name": "SMTP 1",
+        "position": {
+          "x": -2005,
+          "y": -709
+        },
+        "enabled": true,
+        "horizontalHandles": true,
+        "advancedMode": false,
+        "triggerMode": false,
+        "height": 0,
+        "subBlocks": {
+          "cc": {
+            "id": "cc",
+            "type": "short-input",
+            "value": null
+          },
+          "to": {
+            "id": "to",
+            "type": "short-input",
+            "value": "{{email}}"
+          },
+          "bcc": {
+            "id": "bcc",
+            "type": "short-input",
+            "value": null
+          },
+          "body": {
+            "id": "body",
+            "type": "long-input",
+            "value": "{{nombre}} el estado de su cita se actualiza como \"{{estado}}\" para {{fecha}} en su centro de atención."
+          },
+          "from": {
+            "id": "from",
+            "type": "short-input",
+            "value": "fernando.apralize.tests@gmail.com"
+          },
+          "replyTo": {
+            "id": "replyTo",
+            "type": "short-input",
+            "value": null
+          },
+          "subject": {
+            "id": "subject",
+            "type": "short-input",
+            "value": "Reservación de Cita"
+          },
+          "fromName": {
+            "id": "fromName",
+            "type": "short-input",
+            "value": null
+          },
+          "smtpHost": {
+            "id": "smtpHost",
+            "type": "short-input",
+            "value": "smtp.gmail.com"
+          },
+          "smtpPort": {
+            "id": "smtpPort",
+            "type": "short-input",
+            "value": "587"
+          },
+          "smtpSecure": {
+            "id": "smtpSecure",
+            "type": "dropdown",
+            "value": "TLS"
+          },
+          "attachments": {
+            "id": "attachments",
+            "type": "short-input",
+            "value": null
+          },
+          "contentType": {
+            "id": "contentType",
+            "type": "dropdown",
+            "value": "text"
+          },
+          "smtpPassword": {
+            "id": "smtpPassword",
+            "type": "short-input",
+            "value": "ljpi bwcc xnnq abqf"
+          },
+          "smtpUsername": {
+            "id": "smtpUsername",
+            "type": "short-input",
+            "value": "fernando.apralize.tests@gmail.com"
+          },
+          "attachmentFiles": {
+            "id": "attachmentFiles",
+            "type": "file-upload",
+            "value": null
+          }
+        },
+        "outputs": {
+          "to": {
+            "type": "string",
+            "description": "Recipient email address"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message if sending failed"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Email subject"
+          },
+          "success": {
+            "type": "boolean",
+            "description": "Whether the email was sent successfully"
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Message ID from SMTP server"
+          }
+        },
+        "data": {}
+      }
+    },
+    "edges": [
+      {
+        "id": "8eeada2a-8107-4dab-9696-8c16992ea8b6",
+        "source": "72c635d6-45c2-4958-be91-fe75bfccff48",
+        "target": "650ac0e2-d7ec-434f-96e2-14bcb7d1c250",
+        "sourceHandle": "source",
+        "targetHandle": "target",
+        "type": "default",
+        "data": {}
+      }
+    ],
+    "loops": {},
+    "parallels": {},
+    "metadata": {
+      "name": "Notificaciones Email",
+      "description": "New workflow",
+      "color": "#7c3aed",
+      "exportedAt": "2026-01-17T03:44:27.049Z"
+    },
+    "variables": {}
+  }
+}

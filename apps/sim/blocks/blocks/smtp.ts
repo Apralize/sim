@@ -44,7 +44,6 @@ export const SmtpBlock: BlockConfig<SmtpSendMailResult> = {
       type: 'short-input',
       placeholder: 'Your SMTP password',
       required: true,
-      password: true,
     },
     {
       id: 'smtpSecure',

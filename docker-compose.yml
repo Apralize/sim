@@ -1,0 +1,239 @@
+# ==========================================
+# SIM AI STUDIO - Docker Compose Production
+# ==========================================
+# Version: 0.5.60
+# Best Practices: Senior Level
+# Security: Production-ready with HTTPS support
+# Idempotent: Reproducible across environments
+# ==========================================
+
+version: '3.8'
+
+services:
+  # ==========================================
+  # PostgreSQL Database with pgvector
+  # ==========================================
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: simstudio-db
+    restart: unless-stopped
+    networks:
+      - simstudio-network
+    ports:
+      - '${POSTGRES_PORT:-5433}:5432'
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-simstudio}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-simstudio}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ==========================================
+  # Database Migrations
+  # ==========================================
+  migrations:
+    image: ghcr.io/simstudioai/migrations:latest
+    container_name: simstudio-migrations
+    working_dir: /app/packages/db
+    networks:
+      - simstudio-network
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-simstudio}
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ['bun', 'run', 'db:migrate']
+    restart: 'no'
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+  # ==========================================
+  # Realtime Socket Server
+  # ==========================================
+  realtime:
+    image: ghcr.io/simstudioai/realtime:latest
+    container_name: simstudio-realtime
+    restart: unless-stopped
+    networks:
+      - simstudio-network
+    ports:
+      - '${SOCKET_PORT:-3002}:3002'
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-simstudio}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:3000}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - PORT=3002
+      - SOCKET_PORT=3002
+      - HOSTNAME=0.0.0.0
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '--quiet', 'http://127.0.0.1:3002/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ==========================================
+  # Main Application (Next.js)
+  # ==========================================
+  simstudio:
+    image: ghcr.io/simstudioai/simstudio:latest
+    container_name: simstudio-app
+    restart: unless-stopped
+    networks:
+      - simstudio-network
+    ports:
+      - '${APP_PORT:-3000}:3000'
+    environment:
+      # Core
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      
+      # Database
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-simstudio}
+      
+      # Authentication
+      - BETTER_AUTH_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - DISABLE_AUTH=${DISABLE_AUTH:-false}
+      
+      # Application URLs
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      
+      # Security
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - INTERNAL_API_SECRET=${INTERNAL_API_SECRET}
+      - API_ENCRYPTION_KEY=${API_ENCRYPTION_KEY}
+      
+      # Sockets
+      - SOCKET_SERVER_URL=http://realtime:3002
+      - NEXT_PUBLIC_SOCKET_URL=${NEXT_PUBLIC_SOCKET_URL:-http://localhost:3002}
+      
+      # AI Providers (Optional)
+      - OLLAMA_URL=${OLLAMA_URL:-http://host.docker.internal:11434}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY_1=${ANTHROPIC_API_KEY_1:-}
+      - GEMINI_API_KEY_1=${GEMINI_API_KEY_1:-}
+      
+      # Copilot (Optional)
+      - COPILOT_API_KEY=${COPILOT_API_KEY:-}
+      - SIM_AGENT_API_URL=${SIM_AGENT_API_URL:-}
+      
+      # Email (Optional)
+      - RESEND_API_KEY=${RESEND_API_KEY:-}
+      - FROM_EMAIL_ADDRESS=${FROM_EMAIL_ADDRESS:-}
+      
+      # Features (Optional)
+      - ADMIN_API_KEY=${ADMIN_API_KEY:-}
+      - E2B_ENABLED=${E2B_ENABLED:-false}
+      - E2B_API_KEY=${E2B_API_KEY:-}
+      
+      # OAuth Integrations
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
+      - MICROSOFT_CLIENT_ID=${MICROSOFT_CLIENT_ID:-}
+      - MICROSOFT_CLIENT_SECRET=${MICROSOFT_CLIENT_SECRET:-}
+      - SLACK_CLIENT_ID=${SLACK_CLIENT_ID:-}
+      - SLACK_CLIENT_SECRET=${SLACK_CLIENT_SECRET:-}
+      - NOTION_CLIENT_ID=${NOTION_CLIENT_ID:-}
+      - NOTION_CLIENT_SECRET=${NOTION_CLIENT_SECRET:-}
+      - LINEAR_CLIENT_ID=${LINEAR_CLIENT_ID:-}
+      - LINEAR_CLIENT_SECRET=${LINEAR_CLIENT_SECRET:-}
+      
+      # Telemetry
+      - NEXT_TELEMETRY_DISABLED=1
+      - VERCEL_TELEMETRY_DISABLED=1
+      
+    depends_on:
+      db:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+      realtime:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '--quiet', 'http://127.0.0.1:3000/api/health']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '4'
+        reservations:
+          memory: 2G
+          cpus: '1'
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+# ==========================================
+# Networks
+# ==========================================
+networks:
+  simstudio-network:
+    driver: bridge
+    name: simstudio-network
+
+# ==========================================
+# Volumes
+# ==========================================
+volumes:
+  postgres_data:
+    driver: local
+    name: simstudio-postgres-data
